@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Key Verification</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #06060f;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ===== ANIMATED BACKGROUND ===== */
+        .bg-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-layer::before {
+            content: '';
+            position: absolute;
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+            top: -250px;
+            left: -250px;
+            animation: floatBlob1 8s ease-in-out infinite;
+        }
+
+        .bg-layer::after {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, transparent 70%);
+            bottom: -200px;
+            right: -200px;
+            animation: floatBlob2 10s ease-in-out infinite;
+        }
+
+        .bg-extra {
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.07) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: floatBlob3 12s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes floatBlob1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(100px, 80px) scale(1.1); }
+            66% { transform: translate(-50px, 120px) scale(0.95); }
+        }
+
+        @keyframes floatBlob2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(-80px, -60px) scale(1.15); }
+            66% { transform: translate(60px, -100px) scale(0.9); }
+        }
+
+        @keyframes floatBlob3 {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.3); }
+        }
+
+        /* ===== PARTICLES ===== */
+        .particles {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .particle-dot {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: twinkle var(--dur) ease-in-out infinite;
+            animation-delay: var(--delay);
+            opacity: 0;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: var(--max-op); transform: scale(1.2); }
+        }
+
+        /* ===== GRID ===== */
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(99, 102, 241, 0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.025) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+        }
+
+        /* ===== CARD CONTAINER ===== */
+        .login-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 420px;
+            padding: 16px;
+        }
+
+        .card-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120%;
+            height: 120%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(60px);
+            z-index: -1;
+            animation: glowPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+        }
+
+        .card {
+            background: rgba(12, 12, 28, 0.85);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            padding: 44px 36px 36px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.4s, box-shadow 0.4s;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 5%, rgba(99, 102, 241, 0.6) 30%, rgba(168, 85, 247, 0.6) 70%, transparent 95%);
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            right: 20%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.15), transparent);
+        }
+
+        .card:hover {
+            border-color: rgba(99, 102, 241, 0.2);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5), 0 0 100px rgba(99, 102, 241, 0.04);
+        }
+
+        /* ===== LOGO ===== */
+        .logo-section {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo-icon {
+            width: 68px;
+            height: 68px;
+            margin: 0 auto 18px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.12));
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: iconFloat 3s ease-in-out infinite;
+            position: relative;
+        }
+
+        .logo-icon::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25));
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .logo-icon:hover::after { opacity: 1; }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .logo-icon svg { width: 32px; height: 32px; }
+
+        .logo-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+
+        .logo-subtitle {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.35);
+            font-weight: 400;
+        }
+
+        /* ===== FORM ===== */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.45);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .icon-left {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.2);
+            transition: color 0.3s;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .icon-left svg { width: 18px; height: 18px; }
+
+        .input-field {
+            width: 100%;
+            padding: 15px 48px 15px 44px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1.5px solid rgba(255, 255, 255, 0.07);
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-weight: 500;
+            color: #ffffff;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.12);
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0;
+            font-weight: 400;
+            font-size: 14px;
+        }
+
+        .input-field:focus {
+            border-color: rgba(99, 102, 241, 0.5);
+            background: rgba(99, 102, 241, 0.04);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
+        }
+
+        .input-field:focus ~ .icon-left {
+            color: rgba(99, 102, 241, 0.7);
+        }
+
+        .input-field.error {
+            border-color: rgba(239, 68, 68, 0.5) !important;
+            background: rgba(239, 68, 68, 0.04) !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.06) !important;
+            animation: shake 0.5s ease;
+        }
+
+        .input-field.success {
+            border-color: rgba(34, 197, 94, 0.5) !important;
+            background: rgba(34, 197, 94, 0.04) !important;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.06) !important;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translateX(-1px); }
+            20%, 80% { transform: translateX(3px); }
+            30%, 50%, 70% { transform: translateX(-5px); }
+            40%, 60% { transform: translateX(5px); }
+        }
+
+        /* ===== TOGGLE VISIBILITY ===== */
+        .toggle-vis {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            padding: 4px;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .toggle-vis:hover { color: rgba(255, 255, 255, 0.5); }
+        .toggle-vis svg { width: 18px; height: 18px; }
+
+        /* ===== MESSAGE ===== */
+        .msg {
+            margin-top: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .msg.visible { display: flex; }
+
+        .msg.err {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+        }
+
+        .msg.ok {
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.15);
+            color: #86efac;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== BUTTON ===== */
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+            background-size: 200% 200%;
+            animation: gradShift 4s ease infinite;
+            color: #fff;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+            margin-top: 4px;
+        }
+
+        @keyframes gradShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 35px rgba(99, 102, 241, 0.3);
+        }
+
+        .submit-btn:hover::before { opacity: 1; }
+
+        .submit-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .btn-inner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        .submit-btn.loading .spinner { display: block; }
+        .submit-btn.loading .btn-label { display: none; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== STATUS ===== */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #f59e0b;
+            animation: statusPulse 2s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+
+        .status-dot.online { background: #22c55e; }
+        .status-dot.offline { background: #ef4444; }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 0.6; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.3); }
+            50% { opacity: 1; box-shadow: 0 0 0 5px rgba(34, 197, 94, 0); }
+        }
+
+        .status-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.25);
+            letter-spacing: 0.3px;
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* ===== SUCCESS OVERLAY ===== */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(6, 6, 15, 0.92);
+            backdrop-filter: blur(12px);
+        }
+
+        .overlay.active { display: flex; animation: fadeUp 0.4s ease; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .overlay-box {
+            text-align: center;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.7) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .check-circle {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 20px;
+            background: rgba(34, 197, 94, 0.08);
+            border: 2px solid rgba(34, 197, 94, 0.25);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .check-circle svg {
+            width: 44px;
+            height: 44px;
+            stroke: #22c55e;
+            stroke-width: 2.5;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: draw 0.6s 0.3s ease forwards;
+        }
+
+        @keyframes draw { to { stroke-dashoffset: 0; } }
+
+        .overlay-box h2 {
+            color: #fff;
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .overlay-box p {
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 14px;
+        }
+
+        /* ===== CONFETTI ===== */
+        .confetti {
+            position: fixed;
+            pointer-events: none;
+            z-index: 60;
+            border-radius: 2px;
+            animation: confettiFall var(--fall-dur) ease-out forwards;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) rotate(0deg) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0);
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 480px) {
+            .card {
+                padding: 32px 22px 28px;
+                border-radius: 16px;
+            }
+            .logo-title { font-size: 20px; }
+            .input-field {
+                padding: 13px 44px 13px 40px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+    <div class="bg-extra"></div>
+    <div class="grid-bg"></div>
+    <div class="particles" id="particles"></div>
+
+    <div class="login-container">
+        <div class="card-glow"></div>
+        <div class="card">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="url(#g)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <defs>
+                            <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#6366f1"/>
+                                <stop offset="100%" stop-color="#a855f7"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+                    </svg>
+                </div>
+                <h1 class="logo-title">Key Verification</h1>
+                <p class="logo-subtitle">Masukkan key Anda untuk melanjutkan</p>
+            </div>
+
+            <form id="loginForm" autocomplete="off">
+                <div class="form-group">
+                    <label class="form-label" for="keyInput">License Key</label>
+                    <div class="input-wrapper">
+                        <span class="icon-left">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </span>
+                        <input type="password" id="keyInput" class="input-field" placeholder="Masukkan key Anda..." autofocus spellcheck="false" autocomplete="off">
+                        <button type="button" class="toggle-vis" id="toggleBtn" aria-label="Toggle key visibility">
+                            <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="msg err" id="errMsg">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                    <span id="errLabel">Key tidak valid!</span>
+                </div>
+
+                <div class="msg ok" id="okMsg">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                    <span>Key berhasil diverifikasi!</span>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <div class="btn-inner">
+                        <div class="spinner"></div>
+                        <span class="btn-label">Verifikasi Key</span>
+                    </div>
+                </button>
+            </form>
+
+            <div class="status-bar">
+                <div class="status-dot" id="statusDot"></div>
+                <span class="status-label" id="statusLabel">Menghubungkan ke server...</span>
+            </div>
+
+            <p class="footer-text">Dilindungi enkripsi end-to-end &bull; v2.1</p>
+        </div>
+    </div>
+
+    <div class="overlay" id="successOverlay">
+        <div class="overlay-box">
+            <div class="check-circle">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <h2>Access Granted</h2>
+            <p>Selamat datang! Key Anda telah terverifikasi.</p>
+        </div>
+    </div>
+
+    <script>
+        // ===== STARS =====
+        (function() {
+            var container = document.getElementById('particles');
+            for (var i = 0; i < 60; i++) {
+                var dot = document.createElement('div');
+                dot.className = 'particle-dot';
+                dot.style.left = Math.random() * 100 + '%';
+                dot.style.top = Math.random() * 100 + '%';
+                dot.style.setProperty('--dur', (3 + Math.random() * 5) + 's');
+                dot.style.setProperty('--delay', (Math.random() * 5) + 's');
+                dot.style.setProperty('--max-op', (0.3 + Math.random() * 0.7).toString());
+                container.appendChild(dot);
+            }
+        })();
+
+        // ===== DOM =====
+        var form = document.getElementById('loginForm');
+        var keyInput = document.getElementById('keyInput');
+        var submitBtn = document.getElementById('submitBtn');
+        var errMsg = document.getElementById('errMsg');
+        var errLabel = document.getElementById('errLabel');
+        var okMsg = document.getElementById('okMsg');
+        var toggleBtn = document.getElementById('toggleBtn');
+        var eyeIcon = document.getElementById('eyeIcon');
+        var statusDot = document.getElementById('statusDot');
+        var statusLabel = document.getElementById('statusLabel');
+        var successOverlay = document.getElementById('successOverlay');
+
+        var validKeys = [];
+        var keysLoaded = false;
+        var showKey = false;
+
+        // ===== FETCH KEYS (with trailing comma fix) =====
+        async function loadKeys() {
+            try {
+                statusDot.className = 'status-dot';
+                statusLabel.textContent = 'Menghubungkan ke server...';
+
+                var res = await fetch('https://raw.githubusercontent.com/Danz-Project/verif/main/l.json');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+
+                var raw = await res.text();
+
+                // FIX: Remove trailing commas that make JSON invalid
+                var cleaned = raw.replace(/,\s*([\]}])/g, '$1');
+
+                validKeys = JSON.parse(cleaned);
+
+                // Make sure it's an array of strings
+                if (!Array.isArray(validKeys)) {
+                    throw new Error('Data bukan array');
+                }
+
+                validKeys = validKeys.map(function(k) { return String(k).trim(); });
+
+                keysLoaded = true;
+                statusDot.classList.add('online');
+                statusLabel.textContent = 'Server terhubung \u2022 ' + validKeys.length + ' key tersedia';
+
+                console.log('Keys loaded:', validKeys);
+
+            } catch (err) {
+                keysLoaded = false;
+                statusDot.classList.add('offline');
+                statusLabel.textContent = 'Gagal memuat key dari server';
+                console.error('Fetch error:', err);
+            }
+        }
+
+        loadKeys();
+
+        // ===== TOGGLE KEY VISIBILITY =====
+        toggleBtn.addEventListener('click', function() {
+            showKey = !showKey;
+            keyInput.type = showKey ? 'text' : 'password';
+
+            if (showKey) {
+                eyeIcon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+            } else {
+                eyeIcon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+            }
+        });
+
+        // ===== CONFETTI =====
+        function burstConfetti() {
+            var colors = ['#6366f1', '#8b5cf6', '#a855f7', '#22c55e', '#34d399', '#f472b6', '#fbbf24', '#ffffff'];
+            var cx = window.innerWidth / 2;
+            var cy = window.innerHeight / 2;
+
+            for (var i = 0; i < 40; i++) {
+                var el = document.createElement('div');
+                el.className = 'confetti';
+                var w = 5 + Math.random() * 8;
+                var h = 4 + Math.random() * 6;
+                el.style.width = w + 'px';
+                el.style.height = h + 'px';
+                el.style.left = cx + 'px';
+                el.style.top = cy + 'px';
+                el.style.background = colors[Math.floor(Math.random() * colors.length)];
+
+                var angle = (Math.PI * 2 * i) / 40 + (Math.random() - 0.5) * 0.5;
+                var dist = 100 + Math.random() * 200;
+                el.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+                el.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+                el.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+                el.style.setProperty('--fall-dur', (0.6 + Math.random() * 0.6) + 's');
+
+                document.body.appendChild(el);
+                setTimeout(function() { el.remove(); }, 1500);
+            }
+        }
+
+        // ===== RESET UI =====
+        function resetUI() {
+            keyInput.classList.remove('error', 'success');
+            errMsg.classList.remove('visible');
+            okMsg.classList.remove('visible');
+        }
+
+        // ===== FORM SUBMIT =====
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            var key = keyInput.value.trim();
+            resetUI();
+
+            // Check empty
+            if (!key) {
+                keyInput.classList.add('error');
+                errLabel.textContent = 'Silakan masukkan key Anda!';
+                errMsg.classList.add('visible');
+                keyInput.focus();
+                return;
+            }
+
+            // Check if keys loaded
+            if (!keysLoaded) {
+                keyInput.classList.add('error');
+                errLabel.textContent = 'Gagal memuat data key. Coba refresh halaman.';
+                errMsg.classList.add('visible');
+                return;
+            }
+
+            // Loading state
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+
+            // Simulate delay
+            setTimeout(function() {
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+
+                // Verify key
+                var found = false;
+                for (var i = 0; i < validKeys.length; i++) {
+                    if (validKeys[i] === key) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found) {
+                    keyInput.classList.add('success');
+                    okMsg.classList.add('visible');
+                    burstConfetti();
+
+                    setTimeout(function() {
+                        successOverlay.classList.add('active');
+                    }, 700);
+                } else {
+                    keyInput.classList.add('error');
+                    errLabel.textContent = 'Key "' + key + '" tidak valid atau belum terdaftar!';
+                    errMsg.classList.add('visible');
+                    keyInput.focus();
+                    keyInput.select();
+                }
+            }, 1200);
+        });
+
+        // ===== CLEAR ON INPUT =====
+        keyInput.addEventListener('input', function() {
+            keyInput.classList.remove('error', 'success');
+            errMsg.classList.remove('visible');
+            okMsg.classList.remove('visible');
+        });
+    </script>
+</body>
+</html>
